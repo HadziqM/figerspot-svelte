@@ -21,18 +21,14 @@ struct Hold{
 #[derive(Serialize,Deserialize)]
 struct Useritems{
     name:String,
-    id:String,
+    id:Option<String>,
     pin:u32
 }
 
 #[derive(Serialize,Deserialize)]
 struct Users{
-    code:Option<i16>,
     items:Option<Vec<Useritems>>
 }
-
-
-
 
 fn parse_csv(input:&str)->Vec<Vec<String>>{
     input.lines().enumerate().filter(|(i,_)|i.to_owned()!= 0 && i.to_owned()!= 1).map(|(_,e)|e).map(|j|j.split(",").map(|k|k.to_owned()).collect::<Vec<_>>()).collect::<Vec<_>>()
@@ -57,29 +53,43 @@ fn parse_sholat(input:u32)->Option<Sholat>{
         return None;
     }
 }
+
 #[tauri::command]
 pub async fn testing(path:String,host:String,port:u16)->String{
     let con = crud::Collection{
         host,port
     };
     let user:Users = serde_json::from_str(&crud::Table::User.list_all(&con, None).await).unwrap();
-    if user.code.is_some(){
+    if user.items.is_none(){
         return "error".to_string();
     }
+    let items = &user.items.unwrap();
     let file = parse_csv(&std::fs::read_to_string(&path).unwrap());
     let mut holder:Vec<Hold> = Vec::new();
     for i in &file{
         let time = parse_time(&i[0]);
         let sholat = parse_sholat(time.hour()*time.minute());
         if sholat.is_some(){
-            let name = i[2].to_owned();
             let day = (time.month(),time.day());
             let new_struct = Hold{
-                name,day,sholat:sholat.unwrap()
+                name:i[2].to_owned(),day,sholat:sholat.unwrap()
             };
+            let mut id = String::new();
             if !holder.contains(&new_struct){
                 holder.push(new_struct);
-            }
+                let count = items.iter()
+                    .filter(|&e|e.name==i[2].to_owned()).count();
+                if count==0{
+                    let new_user = Useritems{
+                        name:i[2].to_owned(),
+                        id:None,
+                        pin:i[3].parse::<u32>().unwrap()
+                    };
+                    let new_id:Useritems = serde_json::from_str(&crud::Table::User
+                        .create(&con, &serde_json::to_string(&new_user).unwrap()).await).unwrap();
+                    id  = new_id.id.unwrap().to_owned();
+                }
+           }
         }
     }
   "success".to_string()
