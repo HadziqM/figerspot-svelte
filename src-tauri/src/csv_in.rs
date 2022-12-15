@@ -12,7 +12,22 @@ enum Sholat{
     Ashar,
     Maghrib,
     Isya,
-    Subuh
+    Subuh,
+    Tahajud
+}
+struct Filter{
+    d_s:u32,
+    d_f:u32,
+    a_s:u32,
+    a_f:u32,
+    m_s:u32,
+    m_f:u32,
+    i_s:u32,
+    i_f:u32,
+    s_s:u32,
+    s_f:u32,
+    t_s:u32,
+    t_f:u32
 }
 #[derive(PartialEq)]
 struct Hold{
@@ -27,7 +42,8 @@ impl Sholat {
             Sholat::Ashar => crud::Table::Ashar.create(con,sholat_json).await,
             Sholat::Maghrib => crud::Table::Maghrib.create(con,sholat_json).await,
             Sholat::Isya => crud::Table::Isya.create(con, sholat_json).await,
-            Sholat::Subuh => crud::Table::Subuh.create(con, sholat_json).await
+            Sholat::Subuh => crud::Table::Subuh.create(con, sholat_json).await,
+            Sholat::Tahajud => crud::Table::Tahajud.create(con, sholat_json).await
         };
     }
     fn get_name(&self)->String{
@@ -36,7 +52,27 @@ impl Sholat {
             Sholat::Duhur=>"duhur".to_string(),
             Sholat::Ashar=>"asyar".to_string(),
             Sholat::Subuh=>"shubuh".to_string(),
-            Sholat::Maghrib=>"maghrib".to_string()
+            Sholat::Maghrib=>"maghrib".to_string(),
+            Sholat::Tahajud=>"tahajud".to_string()
+        }
+    }
+}
+impl Filter {
+    fn parse_sholat(&self,input:u32)->Option<Sholat>{
+       if input>self.d_s && input<self.d_f{
+            return Some(Sholat::Duhur);
+        }else if input>self.a_s && input<self.a_f{
+            return Some(Sholat::Ashar);
+        }else if input>self.m_s && input<self.m_f{
+            return Some(Sholat::Maghrib);
+        }else if input>self.i_s && input<self.i_f{
+            return Some(Sholat::Isya);
+        }else if input>self.s_s && input<self.s_f{
+            return Some(Sholat::Subuh);
+        }else if input>self.t_s && input<self.t_f{
+            return Some(Sholat::Tahajud);
+        }else{
+            return None;
         }
     }
 }
@@ -64,10 +100,12 @@ fn parse_sholat(input:u32)->Option<Sholat>{
     }
 }
 
-pub async fn testing(path:String,host:String,port:u16)-> String{
-    let con = crud::Collection{
-        host,port
-    };
+pub async fn testing(path:String,host:String,port:u16,
+    d_s:u32,d_f:u32,a_s:u32,a_f:u32,m_s:u32,m_f:u32,
+    i_s:u32,i_f:u32,s_s:u32,s_f:u32,t_s:u32,t_f:u32
+    )-> String{
+    let con = crud::Collection{host,port};
+    let filter = Filter{d_s,d_f,a_s,a_f,m_s,m_f,i_s,i_f,s_s,s_f,t_s,t_f};
     let user:Users = serde_json::from_str(&crud::Table::User.list_all(&con, None).await).unwrap();
     if user.items.is_none(){
         return "error".to_string();
@@ -77,7 +115,7 @@ pub async fn testing(path:String,host:String,port:u16)-> String{
     let mut holder:Vec<Hold> = Vec::new();
     for i in &file{
         let time_data = parse_time(&[&i[0]," +07:00"].concat());
-        let sholat = parse_sholat(time_data.hour()*60+time_data.minute());
+        let sholat = filter.parse_sholat(time_data.hour()*60+time_data.minute());
         let mut test = "invalid".to_string();
         let mut test2 = "double".to_string();
         if sholat.is_some(){

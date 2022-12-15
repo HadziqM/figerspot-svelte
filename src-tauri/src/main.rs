@@ -37,8 +37,11 @@ fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
 }
 #[tauri::command]
-async fn parse(host:String,port:u16,path:String) -> String{
-    csv_in::testing(path, host, port).await
+async fn parse(host:String,port:u16,path:String,
+    d_s:u32,d_f:u32,a_s:u32,a_f:u32,m_s:u32,m_f:u32,
+    i_s:u32,i_f:u32,s_s:u32,s_f:u32,t_s:u32,t_f:u32
+) -> String{
+    csv_in::testing(path,host,port,d_s,d_f,a_s,a_f,m_s,m_f,i_s,i_f,s_s,s_f,t_s,t_f).await
 }
 #[tauri::command()]
 async fn get_all(host:String,port:u16,path:String) -> String{

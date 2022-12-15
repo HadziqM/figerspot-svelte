@@ -33,6 +33,7 @@ pub enum Table {
     Maghrib,
     Isya,
     Subuh,
+    Tahajud
 }
 impl Table {
     fn get_string(&self) -> String {
@@ -43,6 +44,7 @@ impl Table {
             Table::Maghrib => "maghrib".to_string(),
             Table::Isya => "isya".to_string(),
             Table::Subuh => "subuh".to_string(),
+            Table::Tahajud=>"tahajud".to_string()
         }
     }
     fn url_struct(&self, con: &Collection) -> String {
@@ -110,6 +112,17 @@ impl Table {
         {
             Ok(result) => result.text().await.unwrap_or("no message".to_string()),
             Err(_error) => String::from("{\"error\":400}"),
+        }
+    }
+    pub async fn length(&self,con:&Collection,filter:Option<&str>)->usize{
+        let param = match filter {
+            Some(d)  => format!("perPage=1&filter=({})",d),
+            None =>"perPage=1".to_string()
+        };
+        let len_now = serde_json::from_str(&self.list(con, Some(&param)).await).unwrap();
+        match len_now{
+            Some(d)=>d,
+            None=>0
         }
     }
     pub async fn list_all(&self, con: &Collection, param: Option<&str>) -> String {
