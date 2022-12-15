@@ -1,21 +1,30 @@
 <script lang="ts">
+  import { open } from "@tauri-apps/api/dialog"
   import { invoke } from "@tauri-apps/api/tauri"
-  import {open} from "@tauri-apps/api/dialog"
+  const host = "http://127.0.0.1"
+  const port = 8090
 
-  let name = "";
   let greetMsg = ""
-  
   async function greet(){
     const file = await open({filters:[{extensions:['csv'],name:"data"}]})
-    greetMsg = await invoke("parse", {host:"http://127.0.0.1",port:8090, path:file })
+    if (file instanceof Array || file == null){
+      greetMsg = "No file selected"
+    }else{ 
+      greetMsg = await invoke("parse",{host,port,path:file})
+    }
+  }
+  async function delete_all(){
+    await invoke("remove",{host,port})
   }
 </script>
 
 <div>
   <div class="row">
-    <input id="greet-input" placeholder="Enter a name..." bind:value={name} />
     <button on:click={greet}>
-      Greet
+      Proses Data
+    </button>
+    <button on:click={delete_all}>
+      Delete
     </button>
   </div>
   <p>{greetMsg}</p>

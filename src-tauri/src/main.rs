@@ -30,6 +30,7 @@ struct SholatCol{
 }
 
 
+
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 #[tauri::command]
 fn greet(name: &str) -> String {
@@ -41,13 +42,19 @@ async fn parse(host:String,port:u16,path:String) -> String{
 }
 #[tauri::command()]
 async fn get_all(host:String,port:u16,path:String) -> String{
+    println!("{}",&path);
     csv_out::get_all_data(host, port, path).await
+}
+#[tauri::command()]
+async fn remove(host:String,port:u16)->String{
+    let con = crud::Collection{host,port};
+    crud::Table::User.delete_all(&con, None).await
 }
 
 
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![greet,parse,get_all])
+        .invoke_handler(tauri::generate_handler![greet,parse,get_all,remove])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

@@ -1,9 +1,11 @@
 <script lang="ts">
   import Greet from "./lib/Greet.svelte";
+  import Inspect from "./lib/Inspect.svelte";
 </script>
 
   <div class="black">
   <Greet/>
+  <Inspect/>
   </div>
 
 <style>

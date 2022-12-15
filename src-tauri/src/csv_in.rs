@@ -30,26 +30,34 @@ impl Sholat {
             Sholat::Subuh => crud::Table::Subuh.create(con, sholat_json).await
         };
     }
+    fn get_name(&self)->String{
+        match self {
+            Sholat::Isya=>"isya".to_string(),
+            Sholat::Duhur=>"duhur".to_string(),
+            Sholat::Ashar=>"asyar".to_string(),
+            Sholat::Subuh=>"shubuh".to_string(),
+            Sholat::Maghrib=>"maghrib".to_string()
+        }
+    }
 }
 
 fn parse_csv(input:&str)->Vec<Vec<String>>{
     input.lines().enumerate().filter(|(i,_)|i.to_owned()!= 0 && i.to_owned()!= 1).map(|(_,e)|e).map(|j|j.split(",").map(|k|k.to_owned()).collect::<Vec<_>>()).collect::<Vec<_>>()
 }
-
 fn parse_time(input:&str)->DateTime<FixedOffset>{
     DateTime::parse_from_str(input, "%d-%m-%Y %H:%M:%S %z").unwrap()
 }
 
 fn parse_sholat(input:u32)->Option<Sholat>{
-    if input>660 && input<720{
+    if input>660 && input<720{          //11:00 - 12:00
         return Some(Sholat::Duhur);
-    }else if input>870 && input<930 {
+    }else if input>870 && input<930 {   //14:30 - 15:30
         return Some(Sholat::Ashar);
-    }else if input>1030 && input<1090 {
+    }else if input>1030 && input<1090 { //17:10 - 18:10
         return Some(Sholat::Maghrib);
-    }else if input>1120 && input<1180 {
+    }else if input>1120 && input<1180 { //18:40 - 19:40
         return Some(Sholat::Isya);
-    }else if input>190 && input<250 {
+    }else if input>190 && input<250 {   //03:10 - 04:10
         return Some(Sholat::Subuh);
     }else{
         return None;
@@ -68,19 +76,19 @@ pub async fn testing(path:String,host:String,port:u16)-> String{
     let file = parse_csv(&std::fs::read_to_string(&path).unwrap());
     let mut holder:Vec<Hold> = Vec::new();
     for i in &file{
-        println!("{} {}",i.len(),&i[0]);
-        if i.len()<14{
-            continue;
-        }
         let time_data = parse_time(&[&i[0]," +07:00"].concat());
-        let sholat = parse_sholat(time_data.hour()*time_data.minute());
+        let sholat = parse_sholat(time_data.hour()*60+time_data.minute());
+        let mut test = "invalid".to_string();
+        let mut test2 = "double".to_string();
         if sholat.is_some(){
+            test = sholat.clone().unwrap().get_name();
             let day = (time_data.month(),time_data.day());
             let new_struct = Hold{
                 name:i[5].to_owned(),day,sholat:sholat.clone().unwrap()
             };
             if !holder.contains(&new_struct){
                 holder.push(new_struct);
+                test2 = "valid".to_string();
                 let id_user:String;
                 let filtered = items.iter().filter(|&e|e.name==i[5].to_owned()).collect::<Vec<_>>();
                 if filtered.len()==0{
@@ -105,6 +113,7 @@ pub async fn testing(path:String,host:String,port:u16)-> String{
                 sholat.unwrap().create_collection(&con, &sholat_json).await
            }
         }
+        println!("{} at {} become {}:{} hasil filter = {}, status = {}",&i[5],&i[0],time_data.hour(),time_data.minute(),test,test2);
     }
   "success".to_string()
 }
