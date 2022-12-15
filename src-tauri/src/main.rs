@@ -9,10 +9,14 @@ pub mod crud;
 fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
 }
+#[tauri::command]
+async fn parse(host:String,port:u16,path:String) -> String{
+    csv_in::testing(path, host, port).await
+}
 
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![greet])
+        .invoke_handler(tauri::generate_handler![greet,parse])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

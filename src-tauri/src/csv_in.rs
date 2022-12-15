@@ -4,7 +4,7 @@ use crate::crud;
 use serde::{Serialize,Deserialize};
 
 
-#[derive(PartialEq,Clone,Copy)]
+#[derive(PartialEq,Clone)]
 enum Sholat{
     Duhur,
     Ashar,
@@ -18,7 +18,7 @@ struct Hold{
     day:(u32,u32),
     sholat:Sholat
 }
-#[derive(Serialize,Deserialize)]
+#[derive(Serialize,Deserialize,Clone)]
 struct Useritems{
     name:String,
     id:Option<String>,
@@ -36,13 +36,13 @@ struct SholatTable{
 }
 
 impl Sholat {
-    fn create_collection(&self,con:&crud::Collection,sholat_json:&str){
+    async fn create_collection(&self,con:&crud::Collection,sholat_json:&str){
         match self {
-            Sholat::Duhur => crud::Table::Duhur.create(con,sholat_json),
-            Sholat::Ashar => crud::Table::Ashar.create(con,sholat_json),
-            Sholat::Maghrib => crud::Table::Maghrib.create(con,sholat_json),
-            Sholat::Isya => crud::Table::Isya.create(con, sholat_json),
-            Sholat::Subuh => crud::Table::Subuh.create(con, sholat_json)
+            Sholat::Duhur => crud::Table::Duhur.create(con,sholat_json).await,
+            Sholat::Ashar => crud::Table::Ashar.create(con,sholat_json).await,
+            Sholat::Maghrib => crud::Table::Maghrib.create(con,sholat_json).await,
+            Sholat::Isya => crud::Table::Isya.create(con, sholat_json).await,
+            Sholat::Subuh => crud::Table::Subuh.create(con, sholat_json).await
         };
     }
 }
@@ -52,7 +52,7 @@ fn parse_csv(input:&str)->Vec<Vec<String>>{
 }
 
 fn parse_time(input:&str)->DateTime<FixedOffset>{
-    DateTime::parse_from_str(input, "%d-%m-%Y %H-%M-%S").unwrap()
+    DateTime::parse_from_str(input, "%d-%m-%Y %H:%M:%S %z").unwrap()
 }
 
 fn parse_sholat(input:u32)->Option<Sholat>{
@@ -71,7 +71,7 @@ fn parse_sholat(input:u32)->Option<Sholat>{
     }
 }
 
-pub async fn testing(path:String,host:String,port:u16)->String{
+pub async fn testing(path:String,host:String,port:u16)-> String{
     let con = crud::Collection{
         host,port
     };
@@ -79,30 +79,36 @@ pub async fn testing(path:String,host:String,port:u16)->String{
     if user.items.is_none(){
         return "error".to_string();
     }
-    let items = user.items.unwrap();
+    let mut items = user.items.unwrap();
     let file = parse_csv(&std::fs::read_to_string(&path).unwrap());
     let mut holder:Vec<Hold> = Vec::new();
     for i in &file{
-        let time_data = parse_time(&i[0]);
+        println!("{} {}",i.len(),&i[0]);
+        if i.len()<14{
+            continue;
+        }
+        let time_data = parse_time(&[&i[0]," +07:00"].concat());
         let sholat = parse_sholat(time_data.hour()*time_data.minute());
         if sholat.is_some(){
             let day = (time_data.month(),time_data.day());
             let new_struct = Hold{
-                name:i[2].to_owned(),day,sholat:sholat.clone().unwrap()
+                name:i[5].to_owned(),day,sholat:sholat.clone().unwrap()
             };
             if !holder.contains(&new_struct){
                 holder.push(new_struct);
                 let mut id_user = String::new();
-                let filtered = items.iter().filter(|&e|e.name==i[2].to_owned()).collect::<Vec<_>>();
+                let filtered = items.iter().filter(|&e|e.name==i[5].to_owned()).collect::<Vec<_>>();
                 if filtered.len()==0{
-                    let new_user = Useritems{
-                        name:i[2].to_owned(),
+                    let mut new_user = Useritems{
+                        name:i[5].to_owned(),
                         id:None,
                         pin:i[3].parse::<u32>().unwrap()
                     };
                     let new_id:Useritems = serde_json::from_str(&crud::Table::User
                         .create(&con, &serde_json::to_string(&new_user).unwrap()).await).unwrap();
-                    id_user  = new_id.id.unwrap().to_owned();
+                    id_user  = new_id.clone().id.unwrap().to_owned();
+                    new_user.id = Some(new_id.id.unwrap().to_owned());
+                    items.push(new_user);
                 }else{
                     id_user = filtered[0].id.to_owned().unwrap();
                 }
@@ -111,7 +117,7 @@ pub async fn testing(path:String,host:String,port:u16)->String{
                     time:format!("{}",time_data.format("%+"))
                 };
                 let sholat_json = serde_json::to_string(&data_sholat).unwrap();
-                sholat.unwrap().create_collection(&con, &sholat_json)
+                sholat.unwrap().create_collection(&con, &sholat_json).await
            }
         }
     }

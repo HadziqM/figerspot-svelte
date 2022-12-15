@@ -7,7 +7,7 @@
   
   async function greet(){
     const file = await open({filters:[{extensions:['csv'],name:"data"}]})
-    greetMsg = await invoke("testing", { path:file })
+    greetMsg = await invoke("parse", {host:"http://127.0.0.1",port:8090, path:file })
   }
 </script>
 
