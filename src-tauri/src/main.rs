@@ -39,10 +39,15 @@ fn greet(name: &str) -> String {
 async fn parse(host:String,port:u16,path:String) -> String{
     csv_in::testing(path, host, port).await
 }
+#[tauri::command()]
+async fn get_all(host:String,port:u16,path:String) -> String{
+    csv_out::get_all_data(host, port, path).await
+}
+
 
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![greet,parse])
+        .invoke_handler(tauri::generate_handler![greet,parse,get_all])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
