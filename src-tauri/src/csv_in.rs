@@ -1,7 +1,9 @@
 
 use chrono::prelude::*;
 use crate::crud;
-use serde::{Serialize,Deserialize};
+use crate::Users;
+use crate::Useritems;
+use crate::SholatTable;
 
 
 #[derive(PartialEq,Clone)]
@@ -18,23 +20,6 @@ struct Hold{
     day:(u32,u32),
     sholat:Sholat
 }
-#[derive(Serialize,Deserialize,Clone)]
-struct Useritems{
-    name:String,
-    id:Option<String>,
-    pin:u32
-}
-
-#[derive(Serialize,Deserialize)]
-struct Users{
-    items:Option<Vec<Useritems>>
-}
-#[derive(Serialize)]
-struct SholatTable{
-    user:String,
-    time:String
-}
-
 impl Sholat {
     async fn create_collection(&self,con:&crud::Collection,sholat_json:&str){
         match self {
@@ -96,7 +81,7 @@ pub async fn testing(path:String,host:String,port:u16)-> String{
             };
             if !holder.contains(&new_struct){
                 holder.push(new_struct);
-                let mut id_user = String::new();
+                let id_user:String;
                 let filtered = items.iter().filter(|&e|e.name==i[5].to_owned()).collect::<Vec<_>>();
                 if filtered.len()==0{
                     let mut new_user = Useritems{
