@@ -16,18 +16,18 @@ enum Sholat{
     Tahajud
 }
 struct Filter{
-    d_s:u32,
-    d_f:u32,
-    a_s:u32,
-    a_f:u32,
-    m_s:u32,
-    m_f:u32,
-    i_s:u32,
-    i_f:u32,
-    s_s:u32,
-    s_f:u32,
-    t_s:u32,
-    t_f:u32
+    d_s:String,
+    d_f:String,
+    a_s:String,
+    a_f:String,
+    m_s:String,
+    m_f:String,
+    i_s:String,
+    i_f:String,
+    s_s:String,
+    s_f:String,
+    t_s:String,
+    t_f:String
 }
 #[derive(PartialEq)]
 struct Hold{
@@ -57,19 +57,23 @@ impl Sholat {
         }
     }
 }
+fn parse_time(input:&str)->u32{
+    let idk = input.split(":").map(|e|e.parse::<u32>().unwrap()).collect::<Vec<_>>();
+    idk[0]*60+idk[1]
+}
 impl Filter {
     fn parse_sholat(&self,input:u32)->Option<Sholat>{
-       if input>self.d_s && input<self.d_f{
+       if input>parse_time(&self.d_s) && input<parse_time(&self.d_f){
             return Some(Sholat::Duhur);
-        }else if input>self.a_s && input<self.a_f{
+        }else if input>parse_time(&self.a_s) && input<parse_time(&self.a_f){
             return Some(Sholat::Ashar);
-        }else if input>self.m_s && input<self.m_f{
+        }else if input>parse_time(&self.m_s) && input<parse_time(&self.m_f){
             return Some(Sholat::Maghrib);
-        }else if input>self.i_s && input<self.i_f{
+        }else if input>parse_time(&self.i_s) && input<parse_time(&self.i_f){
             return Some(Sholat::Isya);
-        }else if input>self.s_s && input<self.s_f{
+        }else if input>parse_time(&self.s_s) && input<parse_time(&self.s_f){
             return Some(Sholat::Subuh);
-        }else if input>self.t_s && input<self.t_f{
+        }else if input>parse_time(&self.t_s) && input<parse_time(&self.t_f){
             return Some(Sholat::Tahajud);
         }else{
             return None;
@@ -80,29 +84,13 @@ impl Filter {
 fn parse_csv(input:&str)->Vec<Vec<String>>{
     input.lines().enumerate().filter(|(i,_)|i.to_owned()!= 0 && i.to_owned()!= 1).map(|(_,e)|e).map(|j|j.split(",").map(|k|k.to_owned()).collect::<Vec<_>>()).collect::<Vec<_>>()
 }
-fn parse_time(input:&str)->DateTime<FixedOffset>{
+fn parse_one_time(input:&str)->DateTime<FixedOffset>{
     DateTime::parse_from_str(input, "%d-%m-%Y %H:%M:%S %z").unwrap()
 }
 
-fn parse_sholat(input:u32)->Option<Sholat>{
-    if input>660 && input<720{          //11:00 - 12:00
-        return Some(Sholat::Duhur);
-    }else if input>870 && input<930 {   //14:30 - 15:30
-        return Some(Sholat::Ashar);
-    }else if input>1030 && input<1090 { //17:10 - 18:10
-        return Some(Sholat::Maghrib);
-    }else if input>1120 && input<1180 { //18:40 - 19:40
-        return Some(Sholat::Isya);
-    }else if input>190 && input<250 {   //03:10 - 04:10
-        return Some(Sholat::Subuh);
-    }else{
-        return None;
-    }
-}
-
 pub async fn testing(path:String,host:String,port:u16,
-    d_s:u32,d_f:u32,a_s:u32,a_f:u32,m_s:u32,m_f:u32,
-    i_s:u32,i_f:u32,s_s:u32,s_f:u32,t_s:u32,t_f:u32
+    d_s:String,d_f:String,a_s:String,a_f:String,m_s:String,m_f:String,
+    i_s:String,i_f:String,s_s:String,s_f:String,t_s:String,t_f:String
     )-> String{
     let con = crud::Collection{host,port};
     let filter = Filter{d_s,d_f,a_s,a_f,m_s,m_f,i_s,i_f,s_s,s_f,t_s,t_f};
@@ -114,7 +102,7 @@ pub async fn testing(path:String,host:String,port:u16,
     let file = parse_csv(&std::fs::read_to_string(&path).unwrap());
     let mut holder:Vec<Hold> = Vec::new();
     for i in &file{
-        let time_data = parse_time(&[&i[0]," +07:00"].concat());
+        let time_data = parse_one_time(&[&i[0]," +07:00"].concat());
         let sholat = filter.parse_sholat(time_data.hour()*60+time_data.minute());
         let mut test = "invalid".to_string();
         let mut test2 = "invalid".to_string();

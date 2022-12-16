@@ -5,11 +5,11 @@
 
   <div class="black">
   <Greet/>
-  <Inspect/>
   </div>
 
 <style>
   .black{
+    position: relative;
     display:flex;
     width:100vw;
     height: 100vh;

@@ -10,7 +10,7 @@
     if (file==null){
       greetMsg = "No file selected"
     }else{ 
-      greetMsg = await invoke("get_all",{host:host,port:port,path:file})
+      greetMsg = await invoke("get_all",{host:host,port:port,path:file}) as string
     }
   }
 </script>
