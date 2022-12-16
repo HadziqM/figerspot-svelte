@@ -134,7 +134,7 @@ pub async fn testing(path:String,host:String,port:u16,
                     let mut new_user = Useritems{
                         name:i[5].to_owned(),
                         id:None,
-                        pin:i[3].parse::<u32>().unwrap()
+                        pin:i[3].to_owned()
                     };
                     let new_id:Useritems = serde_json::from_str(&crud::Table::User
                         .create(&con, &serde_json::to_string(&new_user).unwrap()).await).unwrap();

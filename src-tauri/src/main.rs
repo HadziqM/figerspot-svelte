@@ -12,9 +12,8 @@ pub mod crud;
 struct Useritems{
     name:String,
     id:Option<String>,
-    pin:u32,
+    pin:String,
 }
-
 #[derive(Serialize,Deserialize)]
 struct Users{
     items:Option<Vec<Useritems>>
@@ -29,10 +28,6 @@ struct SholatTable{
 struct SholatCol{
     items:Option<Vec<SholatTable>>
 }
-
-
-
-// Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 #[tauri::command]
 fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
@@ -45,9 +40,9 @@ async fn parse(host:String,port:u16,path:String,
     csv_in::testing(path,host,port,d_s,d_f,a_s,a_f,m_s,m_f,i_s,i_f,s_s,s_f,t_s,t_f).await
 }
 #[tauri::command()]
-async fn get_all(host:String,port:u16,path:String) -> String{
+async fn get_all(host:String,port:u16,path:String,start:String,stop:String) -> String{
     println!("{}",&path);
-    csv_out::get_all_data(host, port, path).await
+    csv_out::get_all_data(host, port, path,start,stop).await
 }
 #[tauri::command()]
 async fn remove(host:String,port:u16)->String{
