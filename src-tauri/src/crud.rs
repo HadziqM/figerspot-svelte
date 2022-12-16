@@ -9,10 +9,8 @@ struct Items {
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct Length {
-    total_items: Option<u32>,
-    code: Option<u16>,
-    error: Option<u16>,
-    items: Option<Vec<Items>>,
+    total_items: Option<usize>,
+    items:Option<Vec<Items>>
 }
 fn construct_headers() -> reqwest::header::HeaderMap {
     let mut headers = reqwest::header::HeaderMap::new();
@@ -21,6 +19,39 @@ fn construct_headers() -> reqwest::header::HeaderMap {
         reqwest::header::HeaderValue::from_static("application/json"),
     );
     headers
+}
+pub fn url_parser(url:&str)->String{
+    let mut out:Vec<char> = Vec::new();
+    for i in url.chars(){
+        let parsed = match i {
+            '&'=>"%26".to_string(),
+            '$'=>"%24".to_string(),
+            '+'=>"%2B".to_string(),
+            ','=>"%2C".to_string(),
+            '/'=>"%2F".to_string(),
+            ':'=>"%3A".to_string(),
+            ';'=>"%3B".to_string(),
+            '='=>"%3D".to_string(),
+            '?'=>"%3F".to_string(),
+            '@'=>"%40".to_string(),
+            ' '=>"%20".to_string(),
+            '!'=>"%21".to_string(),
+            '"'=>"%22".to_string(),
+            '#'=>"%23".to_string(),
+            '%'=>"%25".to_string(),
+            '\''=>"%27".to_string(),
+            '('=>"%28".to_string(),
+            ')'=>"%29".to_string(),
+            '.'=>"%2E".to_string(),
+            '<'=>"%3C".to_string(),
+            '>'=>"%3E".to_string(),
+            _=>i.to_string()
+        };
+        for j in parsed.chars(){
+            out.push(j);
+        };
+    };
+    out.iter().collect::<String>()
 }
 pub struct Collection {
     pub(crate) host: String,
@@ -58,7 +89,7 @@ impl Table {
     pub async fn list(&self, con: &Collection, param: Option<&str>) -> String {
         let mut url = self.url_struct(con);
         if param.is_some() {
-            url.push_str(["?", param.unwrap()].concat().as_str())
+            url.push_str(["?", url_parser(param.unwrap()).as_str()].concat().as_str())
         }
         let client = reqwest::Client::new();
         match client.get(url).send().await {
@@ -116,33 +147,30 @@ impl Table {
     }
     pub async fn length(&self,con:&Collection,filter:Option<&str>)->usize{
         let param = match filter {
-            Some(d)  => format!("perPage=1&filter=({})",d),
+            Some(d)  => url_parser(["perPage=1","&&filter=(",d,")"].concat().as_str()),
             None =>"perPage=1".to_string()
         };
-        let len_now = serde_json::from_str(&self.list(con, Some(&param)).await).unwrap();
-        match len_now{
+        let len_now:Length = serde_json::from_str(&self.list(con, Some(&param)).await).unwrap();
+        match len_now.total_items{
             Some(d)=>d,
             None=>0
         }
     }
     pub async fn list_all(&self, con: &Collection, param: Option<&str>) -> String {
-        let result = &self.list(con, Some("perPage=1")).await;
-        let now: Length = serde_json::from_str(result).unwrap();
-        if now.error.is_some() {
-            return String::from("{\"error\":400}");
-        } else if now.code.is_some() {
-            return String::from("{\"code\":400}");
+        let now = &self.length(con, None).await;
+        if now.to_owned()==0 {
+            return "{\"error\":400}".to_string();
         } else {
             match param {
                 Some(e) => {
                     self.list(
                         con,
-                        Some(&format!("perPage={}&{}", now.total_items.unwrap(), e)),
+                        Some(url_parser(format!("perPage={}&&{}",now,e).as_str()).as_str()),
                     )
                     .await
                 }
                 None => {
-                    self.list(con, Some(&format!("perPage={}", now.total_items.unwrap())))
+                    self.list(con, Some(&format!("perPage={}", now)))
                         .await
                 }
             }
@@ -150,22 +178,19 @@ impl Table {
     }
     pub async fn delete_all(&self, con: &Collection, param: Option<&str>) -> String {
         let listed: Length = serde_json::from_str(&self.list_all(con, None).await).unwrap();
-        if listed.error.is_some() {
-            return String::from("{\"error\":400}");
-        } else if listed.code.is_some() {
-            return String::from("{\"code\":400}");
-        } else {
+        if listed.items.is_some() {
             for i in listed.items.unwrap() {
                 self.delete(con, &i.id).await;
             }
-            self.list(con, param).await
+            return self.list(con, param).await
         }
+        "{\"error\":400}".to_string()
     }
     pub async fn update_or_create(&self, con: &Collection, id: &str, data: &str) -> String {
         let listed: Length = serde_json::from_str(&self.update(con, id, data).await).unwrap();
-        if listed.error.is_some() {
+        if listed.total_items.is_none() {
             return String::from("{\"error\":400}");
-        } else if listed.code.is_some() {
+        } else if listed.items.is_none() {
             self.create(con, data).await
         } else {
             serde_json::to_string(&listed).unwrap()
