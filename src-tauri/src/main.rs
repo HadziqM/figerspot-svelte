@@ -12,7 +12,7 @@ pub mod crud;
 struct Useritems{
     name:String,
     id:Option<String>,
-    pin:u32
+    pin:u32,
 }
 
 #[derive(Serialize,Deserialize)]
@@ -22,7 +22,8 @@ struct Users{
 #[derive(Serialize,Deserialize)]
 struct SholatTable{
     user:String,
-    time:String
+    time:String,
+    code:String
 }
 #[derive(Serialize,Deserialize)]
 struct SholatCol{

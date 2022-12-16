@@ -117,13 +117,14 @@ pub async fn testing(path:String,host:String,port:u16,
         let time_data = parse_time(&[&i[0]," +07:00"].concat());
         let sholat = filter.parse_sholat(time_data.hour()*60+time_data.minute());
         let mut test = "invalid".to_string();
-        let mut test2 = "double".to_string();
+        let mut test2 = "invalid".to_string();
         if sholat.is_some(){
             test = sholat.clone().unwrap().get_name();
             let day = (time_data.month(),time_data.day());
             let new_struct = Hold{
                 name:i[5].to_owned(),day,sholat:sholat.clone().unwrap()
             };
+            test2 = "double".to_string();
             if !holder.contains(&new_struct){
                 holder.push(new_struct);
                 test2 = "valid".to_string();
@@ -144,8 +145,9 @@ pub async fn testing(path:String,host:String,port:u16,
                     id_user = filtered[0].id.to_owned().unwrap();
                 }
                 let data_sholat = SholatTable{
-                    user: id_user,
-                    time:format!("{}",time_data.format("%+"))
+                    user: id_user.to_owned(),
+                    time:format!("{}",time_data.format("%+")),
+                    code:format!("{}{}",&id_user,time_data.format("%+"))
                 };
                 let sholat_json = serde_json::to_string(&data_sholat).unwrap();
                 sholat.unwrap().create_collection(&con, &sholat_json).await
