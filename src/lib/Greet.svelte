@@ -5,20 +5,27 @@
   const port = 8090
 
   let greetMsg = ""
-  //async function greet(){
-  //  const file = await open({filters:[{extensions:['csv'],name:"data"}]})
-  //  if (file instanceof Array || file == null){
-   //   greetMsg = "No file selected"
-   // }else{ 
-   //   greetMsg = await invoke("parse",{host,port,path:file}) as string
-   // }
-  //}
-  let d_s = "01:00"
-  let d_f ="02:00"
-  function greet(){
-    greetMsg = d_f
+  let d_s = "11:00"
+  let d_f ="12:00"
+  let a_s = "14:30"
+  let a_f ="15:30" 
+  let m_s = "17:10"
+  let m_f ="18:10" 
+  let i_s = "18:40"
+  let i_f ="19:40" 
+  let s_s = "03:20"
+  let s_f ="04:10" 
+  let t_s = "02:00"
+  let t_f ="03:19"
+   async function greet(){
+    const file = await open({filters:[{extensions:['csv'],name:"data"}]})
+    if (file instanceof Array || file == null){
+      greetMsg = "No file selected"
+    }else{ 
+      greetMsg = await invoke("parse",{host,port,path:file}) as string
+    }
   }
-  </script>
+</script>
 
 <div class="full_sc">
   <p>{greetMsg}</p>
@@ -36,46 +43,46 @@
       <div class="container">
         <p>Asyar</p>
         <div class="f-row">
-        <div class="f-col"><label for="d_s">Start</label>
-        <input type=time name="d_s" bind:value={d_s} ></div>
-        <div class="f-col"><label for="d_f">Stop</label>
-        <input type=time name="d_f" bind:value={d_f}></div>
+        <div class="f-col"><label for="a_s">Start</label>
+        <input type=time name="a_s" bind:value={a_s} ></div>
+        <div class="f-col"><label for="a_f">Stop</label>
+        <input type=time name="a_f" bind:value={a_f}></div>
         </div>
       </div>
       <div class="container">
         <p>Maghrib</p>
         <div class="f-row">
-        <div class="f-col"><label for="d_s">Start</label>
-        <input type=time name="d_s" bind:value={d_s} ></div>
-        <div class="f-col"><label for="d_f">Stop</label>
-        <input type=time name="d_f" bind:value={d_f}></div>
+        <div class="f-col"><label for="m_s">Start</label>
+        <input type=time name="m_s" bind:value={m_s} ></div>
+        <div class="f-col"><label for="m_f">Stop</label>
+        <input type=time name="m_f" bind:value={m_f}></div>
         </div>
       </div>
       <div class="container">
         <p>Isya'</p>
         <div class="f-row">
         <div class="f-col"><label for="d_s">Start</label>
-        <input type=time name="d_s" bind:value={d_s} ></div>
-        <div class="f-col"><label for="d_f">Stop</label>
-        <input type=time name="d_f" bind:value={d_f}></div>
+        <input type=time name="i_s" bind:value={i_s} ></div>
+        <div class="f-col"><label for="i_f">Stop</label>
+        <input type=time name="i_f" bind:value={i_f}></div>
         </div>
       </div> 
       <div class="container">
         <p>Subuh</p>
         <div class="f-row">
-        <div class="f-col"><label for="d_s">Start</label>
-        <input type=time name="d_s" bind:value={d_s} ></div>
-        <div class="f-col"><label for="d_f">Stop</label>
-        <input type=time name="d_f" bind:value={d_f}></div>
+        <div class="f-col"><label for="s_s">Start</label>
+        <input type=time name="d_s" bind:value={s_s} ></div>
+        <div class="f-col"><label for="s_f">Stop</label>
+        <input type=time name="s_f" bind:value={s_f}></div>
         </div>
       </div>
       <div class="container">
         <p>Tahajud</p>
         <div class="f-row">
-        <div class="f-col"><label for="d_s">Start</label>
-        <input type=time name="d_s" bind:value={d_s} ></div>
-        <div class="f-col"><label for="d_f">Stop</label>
-        <input type=time name="d_f" bind:value={d_f}></div>
+        <div class="f-col"><label for="t_s">Start</label>
+        <input type=time name="t_s" bind:value={t_s} ></div>
+        <div class="f-col"><label for="t_f">Stop</label>
+        <input type=time name="t_f" bind:value={t_f}></div>
         </div>
       </div> 
     </div>

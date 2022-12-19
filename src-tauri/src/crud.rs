@@ -176,15 +176,15 @@ impl Table {
             }
         }
     }
-    pub async fn delete_all(&self, con: &Collection, param: Option<&str>) -> String {
+    pub async fn delete_all(&self, con: &Collection) -> String {
         let listed: Length = serde_json::from_str(&self.list_all(con, None).await).unwrap();
         if listed.items.is_some() {
             for i in listed.items.unwrap() {
                 self.delete(con, &i.id).await;
             }
-            return self.list(con, param).await
+            return "success".to_string();
         }
-        "{\"error\":400}".to_string()
+        "error".to_string()
     }
     pub async fn update_or_create(&self, con: &Collection, id: &str, data: &str) -> String {
         let listed: Length = serde_json::from_str(&self.update(con, id, data).await).unwrap();

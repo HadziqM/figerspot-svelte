@@ -34,8 +34,8 @@ fn greet(name: &str) -> String {
 }
 #[tauri::command]
 async fn parse(host:String,port:u16,path:String,
-    d_s:u32,d_f:u32,a_s:u32,a_f:u32,m_s:u32,m_f:u32,
-    i_s:u32,i_f:u32,s_s:u32,s_f:u32,t_s:u32,t_f:u32
+    d_s:String,d_f:String,a_s:String,a_f:String,m_s:String,m_f:String,
+    i_s:String,i_f:String,s_s:String,s_f:String,t_s:String,t_f:String
 ) -> String{
     csv_in::testing(path,host,port,d_s,d_f,a_s,a_f,m_s,m_f,i_s,i_f,s_s,s_f,t_s,t_f).await
 }
@@ -47,7 +47,7 @@ async fn get_all(host:String,port:u16,path:String,start:String,stop:String) -> S
 #[tauri::command()]
 async fn remove(host:String,port:u16)->String{
     let con = crud::Collection{host,port};
-    crud::Table::User.delete_all(&con, None).await
+    crud::Table::User.delete_all(&con).await
 }
 
 
