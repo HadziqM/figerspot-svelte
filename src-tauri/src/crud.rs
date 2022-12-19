@@ -29,11 +29,6 @@ pub fn url_parser(url:&str)->String{
             '+'=>"%2B".to_string(),
             ','=>"%2C".to_string(),
             '/'=>"%2F".to_string(),
-            ':'=>"%3A".to_string(),
-            ';'=>"%3B".to_string(),
-            '='=>"%3D".to_string(),
-            '?'=>"%3F".to_string(),
-            '@'=>"%40".to_string(),
             ' '=>"%20".to_string(),
             '!'=>"%21".to_string(),
             '"'=>"%22".to_string(),
@@ -43,8 +38,8 @@ pub fn url_parser(url:&str)->String{
             '('=>"%28".to_string(),
             ')'=>"%29".to_string(),
             '.'=>"%2E".to_string(),
-            '<'=>"%3C".to_string(),
-            '>'=>"%3E".to_string(),
+         //   '<'=>"%3C".to_string(),
+         //   '>'=>"%3E".to_string(),
             _=>i.to_string()
         };
         for j in parsed.chars(){
@@ -149,7 +144,7 @@ impl Table {
     }
     pub async fn length(&self,con:&Collection,filter:Option<&str>)->usize{
         let param = match filter {
-            Some(d)  => url_parser(["perPage=1","&&filter=(",d,")"].concat().as_str()),
+            Some(d)  => url_parser(["filter=(",d,")"].concat().as_str()),
             None =>"perPage=1".to_string()
         };
         let len_now:Length = serde_json::from_str(&self.list(con, Some(&param)).await).unwrap();

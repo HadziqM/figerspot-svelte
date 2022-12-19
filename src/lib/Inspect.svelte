@@ -25,7 +25,9 @@
   }
 
   let greetMsg = ""
-  let please_select:string;
+  let please_select:string
+  let start:string
+  let stop:string
 
   async function greet(){
     const file = await save({filters: [{extensions: ["csv"],name: "data"}]});
@@ -46,12 +48,20 @@
   </button>
   {:else}
   <p class="status">Please Select Machine</p>
-  <div class="row">
+  <div class="nice-col">
     <select bind:value={please_select} on:change={()=>greetMsg=please_select}>
       {#each machine_items as item}
         <option value={item.id}>{item.name}</option>
       {/each}
     </select>
+    <div class="nice-row">
+    <p>Start</p>
+    <input type="date" bind:value={start} on:change={()=>alert(start)}>
+    </div>
+    <div class="nice-row">
+    <p>Stop</p>
+    <input type="date" bind:value={stop}>
+    </div>
     <button on:click={greet}>
       Get Data
     </button>
@@ -71,5 +81,16 @@
     position: absolute;
     top: 20vh;
     font-size:1.5rem;
+  }
+  .nice-col{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  .nice-row{
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
   }
 </style>

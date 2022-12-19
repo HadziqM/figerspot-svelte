@@ -14,7 +14,8 @@ struct MachineItems{
 }
 #[derive(Serialize,Deserialize,Clone)]
 struct Machine{
-    items:Option<Vec<MachineItems>>
+    items:Option<Vec<MachineItems>>,
+    code:Option<u16>
 }
 #[derive(Serialize,Deserialize,Clone)]
 struct Useritems{
@@ -24,7 +25,8 @@ struct Useritems{
 }
 #[derive(Serialize,Deserialize)]
 struct Users{
-    items:Option<Vec<Useritems>>
+    items:Option<Vec<Useritems>>,
+    code:Option<u16>
 }
 #[derive(Serialize,Deserialize)]
 struct SholatTable{
@@ -36,6 +38,11 @@ struct SholatTable{
 #[derive(Serialize,Deserialize)]
 struct SholatCol{
     items:Option<Vec<SholatTable>>
+}
+#[derive(Serialize)]
+struct StartStop{
+    start:String,
+    stop:String
 }
 #[tauri::command]
 fn greet(name: &str) -> String {
@@ -67,11 +74,30 @@ async fn get_machine(host:String,port:u16)->String{
     let con = crud::Collection{host,port};
     crud::Table::Machine.list_all(&con, None).await
 }
+#[tauri::command()]
+async fn get_range(host:String,port:u16)->String{
+    let con = crud::Collection{host,port};
+    let table:SholatCol = serde_json::from_str(&crud::Table::Duhur
+        .list_all(&con, Some("sort=time")).await).unwrap();
+    match table.items{
+        Some(d)=>{
+            let new_time = StartStop{
+                start:d[0].time.split(" ").next().unwrap().to_owned(),
+                stop:d[d.len()-1].time.split(" ").next().unwrap().to_owned()
+            };
+            serde_json::to_string(&new_time).unwrap()
+            }
+        None=>{
+            let new_time = StartStop{start:"".to_string(),stop:"".to_string()};
+            serde_json::to_string(&new_time).unwrap()
+        }
+    }
+}
 
 
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![greet,parse,get_all,remove,get_machine])
+        .invoke_handler(tauri::generate_handler![greet,parse,get_all,remove,get_machine,get_range])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

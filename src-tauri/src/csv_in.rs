@@ -98,12 +98,12 @@ pub async fn testing(path:String,host:String,port:u16,
     let con = crud::Collection{host,port};
     let filter = Filter{d_s,d_f,a_s,a_f,m_s,m_f,i_s,i_f,s_s,s_f,t_s,t_f};
     let user:Users = serde_json::from_str(&crud::Table::User.list_all(&con, None).await).unwrap();
-    if user.items.is_none(){
+    if user.code.is_some(){
         return "error".to_string();
     }
-    let mut items = user.items.unwrap();
+    let mut items = user.items.unwrap_or(Vec::new());
     let machine:Machine = serde_json::from_str(&crud::Table::Machine.list_all(&con, None).await).unwrap();
-    let mut machine_items = machine.items.unwrap();
+    let mut machine_items = machine.items.unwrap_or(Vec::new());
     let file = parse_csv(&std::fs::read_to_string(&path).unwrap());
     let mut holder:Vec<Hold> = Vec::new();
     for i in &file{
@@ -114,6 +114,7 @@ pub async fn testing(path:String,host:String,port:u16,
             let mut j:usize = 6;
             loop{
                 name.push_str(i[j].to_owned().as_str());
+                name.push(',');
                 if name.chars().last()==Some('"'){
                     break;
                 }
@@ -135,8 +136,8 @@ pub async fn testing(path:String,host:String,port:u16,
                 test2 = "valid".to_string();
                 let id_user:String;
                 let id_machine:String;
-                let filtered = items.iter().filter(|&e|e.name==i[5].to_owned()).collect::<Vec<_>>();
-                let second_filtered = machine_items.iter().filter(|&e|e.name==i[13].to_owned()).collect::<Vec<_>>();
+                let filtered = items.iter().filter(|&e|e.name==name.to_owned()).collect::<Vec<_>>();
+                let second_filtered = machine_items.iter().filter(|&e|e.name==i[i.len()-1].to_owned()).collect::<Vec<_>>();
                 if filtered.len()==0{
                     let mut new_user = Useritems{
                         name:name.to_owned(),
@@ -171,7 +172,7 @@ pub async fn testing(path:String,host:String,port:u16,
                 sholat.unwrap().create_collection(&con, &sholat_json).await
            }
         }
-        println!("{} at {} become {}:{} hasil filter = {}, status = {}",&i[5],&i[0],time_data.hour(),time_data.minute(),test,test2);
+        println!("{} at {} become {}:{} hasil filter = {}, status = {}",&name,&i[0],time_data.hour(),time_data.minute(),test,test2);
     }
   "success".to_string()
 }
