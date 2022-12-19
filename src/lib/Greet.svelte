@@ -21,9 +21,11 @@
     const file = await open({filters:[{extensions:['csv'],name:"data"}]})
     if (file instanceof Array || file == null){
       greetMsg = "No file selected"
-    }else{ 
+    }else{
+      greetMsg = "loading....."
       greetMsg = await invoke("parse",{host,port,path:file}) as string
     }
+    setTimeout(()=>greetMsg="",3000)
   }
 </script>
 
