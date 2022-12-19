@@ -64,7 +64,8 @@ pub enum Table {
     Maghrib,
     Isya,
     Subuh,
-    Tahajud
+    Tahajud,
+    Machine
 }
 impl Table {
     fn get_string(&self) -> String {
@@ -75,7 +76,8 @@ impl Table {
             Table::Maghrib => "maghrib".to_string(),
             Table::Isya => "isya".to_string(),
             Table::Subuh => "subuh".to_string(),
-            Table::Tahajud=>"tahajud".to_string()
+            Table::Tahajud=>"tahajud".to_string(),
+            Table::Machine=>"machine".to_string(),
         }
     }
     fn url_struct(&self, con: &Collection) -> String {

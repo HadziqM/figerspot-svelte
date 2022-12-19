@@ -7,7 +7,15 @@ use serde::{Deserialize,Serialize};
 pub mod csv_in;
 pub mod csv_out;
 pub mod crud;
-
+#[derive(Serialize,Deserialize,Clone)]
+struct MachineItems{
+    id:Option<String>,
+    name:String
+}
+#[derive(Serialize,Deserialize,Clone)]
+struct Machine{
+    items:Option<Vec<MachineItems>>
+}
 #[derive(Serialize,Deserialize,Clone)]
 struct Useritems{
     name:String,
@@ -22,7 +30,8 @@ struct Users{
 struct SholatTable{
     user:String,
     time:String,
-    code:String
+    code:String,
+    machine:String
 }
 #[derive(Serialize,Deserialize)]
 struct SholatCol{
@@ -49,11 +58,16 @@ async fn remove(host:String,port:u16)->String{
     let con = crud::Collection{host,port};
     crud::Table::User.delete_all(&con).await
 }
+#[tauri::command()]
+async fn get_machine(host:String,port:u16)->String{
+    let con = crud::Collection{host,port};
+    crud::Table::Machine.list_all(&con, None).await
+}
 
 
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![greet,parse,get_all,remove])
+        .invoke_handler(tauri::generate_handler![greet,parse,get_all,remove,get_machine])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

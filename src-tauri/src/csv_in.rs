@@ -4,6 +4,8 @@ use crate::crud;
 use crate::Users;
 use crate::Useritems;
 use crate::SholatTable;
+use crate::Machine;
+use crate::MachineItems;
 
 
 #[derive(PartialEq,Clone)]
@@ -99,6 +101,8 @@ pub async fn testing(path:String,host:String,port:u16,
         return "error".to_string();
     }
     let mut items = user.items.unwrap();
+    let machine:Machine = serde_json::from_str(&crud::Table::Machine.list_all(&con, None).await).unwrap();
+    let mut machine_items = machine.items.unwrap();
     let file = parse_csv(&std::fs::read_to_string(&path).unwrap());
     let mut holder:Vec<Hold> = Vec::new();
     for i in &file{
@@ -117,7 +121,9 @@ pub async fn testing(path:String,host:String,port:u16,
                 holder.push(new_struct);
                 test2 = "valid".to_string();
                 let id_user:String;
+                let id_machine:String;
                 let filtered = items.iter().filter(|&e|e.name==i[5].to_owned()).collect::<Vec<_>>();
+                let second_filtered = machine_items.iter().filter(|&e|e.name==i[13].to_owned()).collect::<Vec<_>>();
                 if filtered.len()==0{
                     let mut new_user = Useritems{
                         name:i[5].to_owned(),
@@ -132,8 +138,19 @@ pub async fn testing(path:String,host:String,port:u16,
                 }else{
                     id_user = filtered[0].id.to_owned().unwrap();
                 }
+                if second_filtered.len()==0{
+                    let mut new_machine = MachineItems{name:i[13].to_owned(),id:None};
+                    let new_id:MachineItems= serde_json::from_str(&crud::Table::Machine
+                        .create(&con, &serde_json::to_string(&new_machine).unwrap()).await).unwrap();
+                    id_machine = new_id.clone().id.unwrap().to_owned();
+                    new_machine.id=Some(new_id.id.unwrap().to_owned());
+                    machine_items.push(new_machine);
+                }else{
+                    id_machine = second_filtered[0].id.to_owned().unwrap();
+                }
                 let data_sholat = SholatTable{
                     user: id_user.to_owned(),
+                    machine:id_machine.to_owned(),
                     time:format!("{}",time_data.format("%+")),
                     code:format!("{}{}",&id_user,time_data.format("%+"))
                 };
