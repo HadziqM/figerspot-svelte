@@ -75,7 +75,7 @@ fn devisi(pin:u16)->String{
     }
 }
 
-pub async fn get_all_data(host:String,port:u16,path:String,start:String,stop:String)->String{
+pub async fn get_all_data(host:String,port:u16,path:String,start:String,stop:String,machine:String)->String{
     let con =   crud::Collection{
         host,port
     };
@@ -90,7 +90,7 @@ pub async fn get_all_data(host:String,port:u16,path:String,start:String,stop:Str
     for i in &items{
         println!("Getting {}'s data",i.name.clone().to_owned());
         let id = i.id.to_owned().unwrap();
-        let filter = format!("time>={}&&time<={}&&user={}",start,stop,id);
+        let filter = format!("time>='{}'&&time<='{}'&&user='{}'&&machine='{}'",start,stop,id,machine);
         let dhuhur = crud::Table::Duhur.length(&con, Some(&filter)).await;
         let ashar = crud::Table::Ashar.length(&con, Some(&filter)).await;
         let maghrib = crud::Table::Maghrib.length(&con, Some(&filter)).await;

@@ -22,15 +22,16 @@
     if (file instanceof Array || file == null){
       greetMsg = "No file selected"
     }else{
+      const timer = `${d_s},${d_f},${a_s},${a_f},${m_s},${m_f},${i_s},${i_f},${s_s},${s_f},${t_s},${t_f}`
       greetMsg = "loading....."
-      greetMsg = await invoke("parse",{host,port,path:file}) as string
+      greetMsg = await invoke("parse",{host,port,path:file,timer}) as string
     }
     setTimeout(()=>greetMsg="",3000)
   }
 </script>
 
 <div class="full_sc">
-  <p>{greetMsg}</p>
+  <p class="status-msg" >{greetMsg}</p>
   <form class="form-s" on:submit|preventDefault={greet}>
     <div class="bg-container">
       <div class="container">
@@ -139,5 +140,8 @@
     gap: 0.1rem;
     flex-direction: column;
   }
-
+  .status-msg{
+    display:absolute;
+    top:1rem;
+  }
 </style>

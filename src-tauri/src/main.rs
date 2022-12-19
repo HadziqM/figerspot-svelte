@@ -43,20 +43,24 @@ fn greet(name: &str) -> String {
 }
 #[tauri::command]
 async fn parse(host:String,port:u16,path:String,
-    d_s:String,d_f:String,a_s:String,a_f:String,m_s:String,m_f:String,
-    i_s:String,i_f:String,s_s:String,s_f:String,t_s:String,t_f:String
-) -> String{
-    csv_in::testing(path,host,port,d_s,d_f,a_s,a_f,m_s,m_f,i_s,i_f,s_s,s_f,t_s,t_f).await
+    timer:String) -> String{
+    println!("invoked");
+    let k = timer.split(',').map(|e|e.to_owned()).collect::<Vec<_>>();
+    csv_in::testing(path,host,port
+        ,k[0].to_owned(),k[1].to_owned(),k[2].to_owned(),k[3].to_owned(),k[4].to_owned()
+        ,k[5].to_owned(),k[6].to_owned(),k[7].to_owned(),k[8].to_owned(),k[9].to_owned()
+        ,k[10].to_owned(),k[11].to_owned()).await
 }
 #[tauri::command()]
-async fn get_all(host:String,port:u16,path:String,start:String,stop:String) -> String{
+async fn get_all(host:String,port:u16,path:String,start:String,stop:String,machine:String) -> String{
     println!("{}",&path);
-    csv_out::get_all_data(host, port, path,start,stop).await
+    csv_out::get_all_data(host, port, path,start,stop,machine).await
 }
 #[tauri::command()]
 async fn remove(host:String,port:u16)->String{
     let con = crud::Collection{host,port};
-    crud::Table::User.delete_all(&con).await
+    crud::Table::User.delete_all(&con).await;
+    crud::Table::Machine.delete_all(&con).await
 }
 #[tauri::command()]
 async fn get_machine(host:String,port:u16)->String{

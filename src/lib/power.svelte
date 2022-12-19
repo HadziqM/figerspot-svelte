@@ -11,7 +11,7 @@
   }
 </script>
 
-<div>
+<div class="full_sc">
   <div class="delete">
   <p>{greetMsg}</p>
     <button on:click={greet}>

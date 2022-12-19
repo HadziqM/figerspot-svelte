@@ -94,6 +94,7 @@ pub async fn testing(path:String,host:String,port:u16,
     d_s:String,d_f:String,a_s:String,a_f:String,m_s:String,m_f:String,
     i_s:String,i_f:String,s_s:String,s_f:String,t_s:String,t_f:String
     )-> String{
+    println!("called");
     let con = crud::Collection{host,port};
     let filter = Filter{d_s,d_f,a_s,a_f,m_s,m_f,i_s,i_f,s_s,s_f,t_s,t_f};
     let user:Users = serde_json::from_str(&crud::Table::User.list_all(&con, None).await).unwrap();
@@ -108,13 +109,25 @@ pub async fn testing(path:String,host:String,port:u16,
     for i in &file{
         let time_data = parse_one_time(&[&i[0]," +07:00"].concat());
         let sholat = filter.parse_sholat(time_data.hour()*60+time_data.minute());
+        let mut name = i[5].to_owned();
+        if name.chars().next()==Some('"'){
+            let mut j:usize = 6;
+            loop{
+                name.push_str(i[j].to_owned().as_str());
+                if name.chars().last()==Some('"'){
+                    break;
+                }
+                j += 1;
+            }
+            name = name.chars().filter(|&e|e!='"').collect::<String>();
+        };
         let mut test = "invalid".to_string();
         let mut test2 = "invalid".to_string();
         if sholat.is_some(){
             test = sholat.clone().unwrap().get_name();
             let day = (time_data.month(),time_data.day());
             let new_struct = Hold{
-                name:i[5].to_owned(),day,sholat:sholat.clone().unwrap()
+                name:name.to_owned(),day,sholat:sholat.clone().unwrap()
             };
             test2 = "double".to_string();
             if !holder.contains(&new_struct){
@@ -126,7 +139,7 @@ pub async fn testing(path:String,host:String,port:u16,
                 let second_filtered = machine_items.iter().filter(|&e|e.name==i[13].to_owned()).collect::<Vec<_>>();
                 if filtered.len()==0{
                     let mut new_user = Useritems{
-                        name:i[5].to_owned(),
+                        name:name.to_owned(),
                         id:None,
                         pin:i[3].to_owned()
                     };
@@ -139,7 +152,7 @@ pub async fn testing(path:String,host:String,port:u16,
                     id_user = filtered[0].id.to_owned().unwrap();
                 }
                 if second_filtered.len()==0{
-                    let mut new_machine = MachineItems{name:i[13].to_owned(),id:None};
+                    let mut new_machine = MachineItems{name:i[i.len()-1].to_owned(),id:None};
                     let new_id:MachineItems= serde_json::from_str(&crud::Table::Machine
                         .create(&con, &serde_json::to_string(&new_machine).unwrap()).await).unwrap();
                     id_machine = new_id.clone().id.unwrap().to_owned();

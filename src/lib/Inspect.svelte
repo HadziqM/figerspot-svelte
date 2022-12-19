@@ -25,7 +25,7 @@
   }
 
   let greetMsg = ""
-  let please_select:any;
+  let please_select:string;
 
   async function greet(){
     const file = await save({filters: [{extensions: ["csv"],name: "data"}]});
@@ -33,13 +33,13 @@
       greetMsg = "No file selected"
     }else{
       greetMsg = "loading....."
-      greetMsg = await invoke("get_all",{host:host,port:port,path:file}) as string
+      greetMsg = await invoke("get_all",{host:host,port:port,path:file,start:"2021-01-01",stop:"2022-12-12",machine:please_select}) as string
     }
     setTimeout(()=>greetMsg="",3000)
   }
 </script>
 
-<div class="full-sc">
+<div class="full_sc">
   {#if !inspected}
   <button class="inspect" on:click={machineItems}>
     inspect

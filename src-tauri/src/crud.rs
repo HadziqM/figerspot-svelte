@@ -2,11 +2,11 @@ use std::fs;
 
 use reqwest;
 use serde::{Deserialize, Serialize};
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize,Debug)]
 struct Items {
     id: String,
 }
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize,Debug)]
 #[serde(rename_all = "camelCase")]
 struct Length {
     total_items: Option<usize>,
@@ -91,7 +91,7 @@ impl Table {
     pub async fn list(&self, con: &Collection, param: Option<&str>) -> String {
         let mut url = self.url_struct(con);
         if param.is_some() {
-            url.push_str(["?", url_parser(param.unwrap()).as_str()].concat().as_str())
+            url.push_str(["?", param.unwrap()].concat().as_str())
         }
         let client = reqwest::Client::new();
         match client.get(url).send().await {
@@ -160,6 +160,7 @@ impl Table {
     }
     pub async fn list_all(&self, con: &Collection, param: Option<&str>) -> String {
         let now = &self.length(con, None).await;
+        println!("{}",now);
         if now.to_owned()==0 {
             return "{\"error\":400}".to_string();
         } else {
@@ -180,8 +181,10 @@ impl Table {
     }
     pub async fn delete_all(&self, con: &Collection) -> String {
         let listed: Length = serde_json::from_str(&self.list_all(con, None).await).unwrap();
+        println!("{:?}",listed);
         if listed.items.is_some() {
             for i in listed.items.unwrap() {
+                println!("{}",&i.id);
                 self.delete(con, &i.id).await;
             }
             return "success".to_string();
