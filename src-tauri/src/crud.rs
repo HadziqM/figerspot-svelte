@@ -155,7 +155,6 @@ impl Table {
     }
     pub async fn list_all(&self, con: &Collection, param: Option<&str>) -> String {
         let now = &self.length(con, None).await;
-        println!("{}",now);
         if now.to_owned()==0 {
             return "{\"error\":400}".to_string();
         } else {
@@ -176,7 +175,6 @@ impl Table {
     }
     pub async fn delete_all(&self, con: &Collection) -> String {
         let listed: Length = serde_json::from_str(&self.list_all(con, None).await).unwrap();
-        println!("{:?}",listed);
         if listed.items.is_some() {
             for i in listed.items.unwrap() {
                 println!("{}",&i.id);

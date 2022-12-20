@@ -10,6 +10,10 @@
   interface MachineItems{
     items?:Items[]
   }
+  interface StartStop{
+    start:string
+    stop:string
+  }
 
   const host = "http://127.0.0.1"
   const port = 8090
@@ -17,25 +21,32 @@
 
   let machine_items:Items[] = [];
   let inspected = false
+  let start:string
+  let stop:string
 
   const machineItems = async () =>{
-    const idk = JSON.parse(await invoke("get_machine",{host,port})) as MachineItems
+    const [idk2,date2] = await Promise.all
+    ([invoke("get_machine",{host,port}) as Promise<string>
+      ,invoke("get_range",{host,port}) as Promise<string>])
+    const idk = JSON.parse(idk2) as MachineItems
+    const date = JSON.parse(date2) as StartStop
+
+    start = date.start
+    stop = date.stop
     machine_items = idk.items?idk.items:[]
     inspected = true
   }
 
   let greetMsg = ""
   let please_select:string
-  let start:string
-  let stop:string
-
+ 
   async function greet(){
     const file = await save({filters: [{extensions: ["csv"],name: "data"}]});
     if (file==null){
       greetMsg = "No file selected"
     }else{
       greetMsg = "loading....."
-      greetMsg = await invoke("get_all",{host:host,port:port,path:file,start:"2021-01-01",stop:"2022-12-12",machine:please_select}) as string
+      greetMsg = await invoke("get_all",{host,port,path:file,start,stop,machine:please_select}) as string
     }
     setTimeout(()=>greetMsg="",3000)
   }
@@ -56,7 +67,7 @@
     </select>
     <div class="nice-row">
     <p>Start</p>
-    <input type="date" bind:value={start} on:change={()=>alert(start)}>
+    <input type="date" bind:value={start}>
     </div>
     <div class="nice-row">
     <p>Stop</p>

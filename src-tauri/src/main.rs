@@ -78,22 +78,21 @@ async fn get_machine(host:String,port:u16)->String{
 async fn get_range(host:String,port:u16)->String{
     let con = crud::Collection{host,port};
     let table:SholatCol = serde_json::from_str(&crud::Table::Duhur
-        .list_all(&con, Some("sort=time")).await).unwrap();
-    match table.items{
-        Some(d)=>{
-            let new_time = StartStop{
-                start:d[0].time.split(" ").next().unwrap().to_owned(),
-                stop:d[d.len()-1].time.split(" ").next().unwrap().to_owned()
-            };
-            serde_json::to_string(&new_time).unwrap()
-            }
-        None=>{
-            let new_time = StartStop{start:"".to_string(),stop:"".to_string()};
-            serde_json::to_string(&new_time).unwrap()
-        }
-    }
+        .list(&con, Some("sort=time")).await).unwrap();
+    let second_table:SholatCol = serde_json::from_str(&crud::Table::Duhur.list(&con, Some("sort=-time")).await).unwrap();
+    let new_time = StartStop{
+        start:get_table(table),
+        stop:get_table(second_table)
+    };
+    serde_json::to_string(&new_time).unwrap()
 }
 
+fn get_table(table:SholatCol)->String{
+    match table.items {
+        Some(d)=>d[0].time.split(" ").next().unwrap().to_owned(),
+        None=>"".to_string()
+    }
+}
 
 fn main() {
     tauri::Builder::default()

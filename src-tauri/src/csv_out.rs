@@ -22,9 +22,9 @@ struct GetFormat{
 
 fn pin_parse(pin:&str)->Option<Cluster>{
     let mut correct_pin = pin.to_owned();
-    if pin.len() < 8 || pin.len() >9{
+    if pin.len() < 9 || pin.len() >10{
         return None;
-    }else if pin.len() ==8{
+    }else if pin.len() ==9{
         correct_pin = ["0",pin].concat()
     }
     let pr = &correct_pin[0..2].parse::<u16>().unwrap_or(99);
@@ -91,6 +91,7 @@ pub async fn get_all_data(host:String,port:u16,path:String,start:String,stop:Str
         println!("Getting {}'s data",i.name.clone().to_owned());
         let id = i.id.to_owned().unwrap();
         let filter = format!("time>='{}'&&time<='{}'&&user='{}'&&machine='{}'",start,stop,id,machine);
+        println!("{}",&filter);
         let dhuhur = crud::Table::Duhur.length(&con, Some(&filter)).await;
         let ashar = crud::Table::Ashar.length(&con, Some(&filter)).await;
         let maghrib = crud::Table::Maghrib.length(&con, Some(&filter)).await;
