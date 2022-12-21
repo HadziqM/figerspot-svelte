@@ -32,6 +32,7 @@
 
 <div class="full_sc">
   <p class="status-msg" >{greetMsg}</p>
+  <a href="https://www.convertcsv.com/html-table-to-csv.htm" target="_blank">Click This to convert Html to CSV</a>
   <form class="form-s" on:submit|preventDefault={greet}>
     <div class="bg-container">
       <div class="container">

@@ -113,8 +113,8 @@ pub async fn testing(path:String,host:String,port:u16,
         if name.chars().next()==Some('"'){
             let mut j:usize = 6;
             loop{
-                name.push_str(i[j].to_owned().as_str());
                 name.push(',');
+                name.push_str(i[j].to_owned().as_str());
                 if name.chars().last()==Some('"'){
                     break;
                 }
